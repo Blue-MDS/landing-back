@@ -1,19 +1,24 @@
 const express = require('express');
 const SibApiV3Sdk = require('sib-api-v3-sdk');
+require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
+app.use(express.json())
 
 // Configure Sendinblue API client
-const defaultClient = SibApiV3Sdk.ApiClient.instance;
-defaultClient.authentications['api-key'].apiKey = process.env.API_KEY;
+let defaultClient = SibApiV3Sdk.ApiClient.instance;
+
+let apiKey = defaultClient.authentications['api-key'];
+apiKey.apiKey = process.env.API_KEY;
 
 // Create a route to handle the email submission
 app.post('/subscribe', (req, res) => {
   const { email } = req.body;
+  console.log(email);
+  let apiInstance = new SibApiV3Sdk.ContactsApi();
 
-  const apiInstance = new SibApiV3Sdk.ContactsApi();
-  const createContact = new SibApiV3Sdk.CreateContact();
+let createContact = new SibApiV3Sdk.CreateContact();
   createContact.email = email;
 
   apiInstance.createContact(createContact)
