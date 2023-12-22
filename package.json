@@ -1,7 +1,7 @@
 {
-  "name": "back-swipet",
+  "name": "blue-landing-back",
   "version": "1.0.0",
-  "description": "Backend for Swipet landing page",
+  "description": "Backend for Blue landing page",
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
