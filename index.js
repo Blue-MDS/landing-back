@@ -26,13 +26,31 @@ let createContact = new SibApiV3Sdk.CreateContact();
 
   apiInstance.createContact(createContact)
     .then(data => {
-      console.log('Contact added successfully:', data);
       return res.status(200).json({ message: 'Contact added successfully' });
     })
     .catch(error => {
       res.status(500).json({ error: 'Failed to add contact' });
     });
 });
+
+app.post('/preOrder', (req, res) => {
+  const { email, arome } = req.body;
+  let apiInstance = new SibApiV3Sdk.ContactsApi();
+
+let createContact = new SibApiV3Sdk.CreateContact();
+  createContact.email = email;
+  createContact.listIds = [9];
+  createContact.attributes = {AROME: arome};
+
+  apiInstance.createContact(createContact)
+    .then(data => {
+      return res.status(200).json({ message: 'Contact added successfully' });
+    })
+    .catch(error => {
+      res.status(500).json({ error: 'Failed to add contact' });
+    });
+}
+);
 
 // Start the server
 app.listen(port, () => {
