@@ -29,7 +29,11 @@ let createContact = new SibApiV3Sdk.CreateContact();
       return res.status(200).json({ message: 'Contact added successfully' });
     })
     .catch(error => {
+      if (error.status === 400) {
+        return res.status(400).json({ error: 'Vous êtes déjà interessé par un de nos arômes !' });
+      } else {
       res.status(500).json({ error: 'Failed to add contact' });
+      }
     });
 });
 
@@ -47,12 +51,16 @@ let createContact = new SibApiV3Sdk.CreateContact();
       return res.status(200).json({ message: 'Contact added successfully' });
     })
     .catch(error => {
+      if (error.status === 400) {
+        return res.status(400).json({ error: 'Vous êtes déjà interessé par un de nos arômes !' });
+      } else {
       res.status(500).json({ error: 'Failed to add contact' });
+      }
+      
     });
 }
 );
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
