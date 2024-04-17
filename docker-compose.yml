@@ -3,7 +3,14 @@ version: '3.8'
 services:
   app:
     image: node:18
-    container_name: node_app
+    container_name: landing_back
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.landing_back.rule=Host(`newsletter.blue-france.fr`)"
+      - "traefik.http.routers.landing_back.entrypoints=websecure"
+      - "traefik.http.services.landing_back.loadbalancer.server.port=3002"
+      - "traefik.http.routers.landing_back.tls.certresolver=letsencrypt"
+      - "traefik.docker.network=traefik_network"
     ports:
       - "3002:3002"
     volumes:
@@ -15,3 +22,8 @@ services:
       - API_KEY=${API_KEY}
       - FRONT_URL=${FRONT_URL}
     command: bash -c "npm install && npm start"
+    networks:
+      - traefik_network
+networks:
+  traefik_network:
+    external: true
