@@ -17,47 +17,62 @@ let defaultClient = SibApiV3Sdk.ApiClient.instance;
 let apiKey = defaultClient.authentications['api-key'];
 apiKey.apiKey = process.env.API_KEY;
 
-app.post('/subscribe', (req, res) => {
+app.post('/subscribe', async(req, res) => {
   const { email } = req.body;
   let apiInstance = new SibApiV3Sdk.ContactsApi();
-
-let createContact = new SibApiV3Sdk.CreateContact();
-  createContact.email = email;
-
-  apiInstance.createContact(createContact)
-    .then(data => {
+  try {
+    let contact = await apiInstance.getContactInfo(email);
+    if (!contact.listIds.includes(7)) {
+      let updateContact = new SibApiV3Sdk.UpdateContact();
+      updateContact.listIds = [7];
+      await apiInstance.updateContact(email, updateContact);
       return res.status(200).json({ message: 'Contact added successfully' });
-    })
-    .catch(error => {
-      if (error.status === 400) {
-        return res.status(400).json({ error: 'Vous êtes déjà interessé par un de nos arômes !' });
-      } else {
-      res.status(500).json({ error: 'Failed to add contact' });
-      }
-    });
+    } else {
+      return res.status(200).json({ error: 'Vous êtes déjà inscrit à notre Newsletter !' });
+    }
+  } catch (error) {
+    if (error.status === 404) {
+      let createContact = new SibApiV3Sdk.CreateContact();
+      createContact.email = email;
+      createContact.listIds = [7];
+      await apiInstance.createContact(createContact);
+      return res.status(200).json({ message: 'Contact added successfully' });
+    }
+    res.status(500).json({ error: 'Failed to add contact' });
+  }
 });
 
-app.post('/preOrder', (req, res) => {
+app.post('/preOrder', async(req, res) => {
   const { email, arome } = req.body;
   let apiInstance = new SibApiV3Sdk.ContactsApi();
-
-let createContact = new SibApiV3Sdk.CreateContact();
-  createContact.email = email;
-  createContact.listIds = [9];
-  createContact.attributes = {AROME: arome};
-
-  apiInstance.createContact(createContact)
-    .then(data => {
-      return res.status(200).json({ message: 'Contact added successfully' });
-    })
-    .catch(error => {
-      if (error.status === 400) {
-        return res.status(400).json({ error: 'Vous êtes déjà interessé par un de nos arômes !' });
-      } else {
-      res.status(500).json({ error: 'Failed to add contact' });
+  try {
+    let contact = await apiInstance.getContactInfo(email);
+    let existingAromes = contact.attributes && contact.attributes.AROME ? contact.attributes.AROME.split(',') : [];
+    if (existingAromes.length && existingAromes.includes(arome)) {
+      return res.status(200).json({ error: 'Vous êtes déjà intéressé par cet arôme' });
+    } else {
+      existingAromes.push(arome);
+      let updateContact = new SibApiV3Sdk.UpdateContact();
+      if (!contact.listIds.includes(9)) {
+        updateContact.listIds = [9];
       }
-      
-    });
+      updateContact.attributes = { AROME: existingAromes.join(',') };
+      await apiInstance.updateContact(email, updateContact);
+      return res.status(200).json({ message: 'Contact updated successfully' });
+    }
+  } catch (error) {
+    console.log('Error:', error);
+    if (error.status === 404) {
+      let createContact = new SibApiV3Sdk.CreateContact();
+      createContact.email = email;
+      createContact.listIds = [9];
+      createContact.attributes = { AROME: arome };
+      await apiInstance.createContact(createContact);
+      return res.status(200).json({ message: 'Contact added successfully' });
+    } else {
+      res.status(500).json({ error: 'Failed to add contact' });
+    }
+  }
 }
 );
 
